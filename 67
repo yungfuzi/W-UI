@@ -1,0 +1,23 @@
+local function testSeed(name)
+    local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes") or game:GetService("ReplicatedStorage")
+    local buy = remotes:FindFirstChild("BuySeed") or remotes:FindFirstChild("PurchaseSeed") or remotes:FindFirstChild("BuyItem")
+    
+    if buy then
+        print("กำลังทดสอบเมล็ด: " .. name)
+        buy:FireServer(name)
+        task.wait(0.5)
+    else
+        warn("ไม่พบ Remote ซื้อเมล็ด")
+    end
+end
+
+-- ทดสอบหลายชื่อ
+testSeed("Carrot")
+testSeed("Strawberry")
+testSeed("Blueberry")
+testSeed("Tomato")
+testSeed("Mango")
+testSeed("Mushroom")
+testSeed("DragonFruit")
+testSeed("Sunflower")
+testSeed("Cherry")
