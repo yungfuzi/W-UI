@@ -14446,6 +14446,224 @@ au, av = ar:New(at)
     end
 end
 
+function a.af()
+    local aa = {}
+    local ab = a.load("d")
+    local ac = ab.New
+    local ad = ab.Tween
+    local ae = a.load("m").New  -- Button
+    local af = a.load("n").New  -- Input
+    local ag = a.load("H").New  -- Toggle
+    local ah = a.load("I").New  -- Slider
+    local ai = a.load("L").New  -- Input (text)
+    local aj = a.load("O").New  -- Dropdown
+
+    function aa.New(element, config, window, windUI)
+        local self = {
+            Element = element,
+            Config = config,          
+            Window = window,
+            WindUI = windUI,
+            Controls = {},
+            Panel = nil,
+            Opened = false,
+            GearIcon = nil,
+        }
+
+        local gearIcon = ab.Image("settings", "settings", 0, window.Folder, "Config", true)
+        gearIcon.Size = UDim2.new(0, 20, 0, 20)
+        gearIcon.ImageLabel.ImageTransparency = 0.4
+        gearIcon.ImageLabel.ImageColor3 = Color3.new(1,1,1) -- use theme
+        gearIcon.Parent = element.ToggleFrame.UIElements.Main
+        gearIcon.AnchorPoint = Vector2.new(1, 0.5)
+        gearIcon.Position = UDim2.new(1, -8, 0.5, 0)
+        gearIcon.LayoutOrder = 999
+        self.GearIcon = gearIcon
+
+        ab.AddSignal(gearIcon.MouseButton1Click, function()
+            self:Open()
+        end)
+
+        function self:Toggle(ctrlConfig)
+            table.insert(self.Controls, { Type = "Toggle", Config = ctrlConfig })
+            return self
+        end
+        function self:Slider(ctrlConfig)
+            table.insert(self.Controls, { Type = "Slider", Config = ctrlConfig })
+            return self
+        end
+        function self:Input(ctrlConfig)
+            table.insert(self.Controls, { Type = "Input", Config = ctrlConfig })
+            return self
+        end
+        function self:Dropdown(ctrlConfig)
+            table.insert(self.Controls, { Type = "Dropdown", Config = ctrlConfig })
+            return self
+        end
+        function self:Button(ctrlConfig)
+            table.insert(self.Controls, { Type = "Button", Config = ctrlConfig })
+            return self
+        end
+
+        function self:BuildPanel(parent)
+            for _, child in ipairs(parent:GetChildren()) do
+                if child:IsA("Frame") or child:IsA("ScrollingFrame") then
+                    child:Destroy()
+                end
+            end
+
+            local content = ac("Frame", {
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 0, 0),
+                AutomaticSize = "Y",
+                Parent = parent,
+            })
+            ac("UIListLayout", {
+                FillDirection = "Vertical",
+                Padding = UDim.new(0, 10),
+                HorizontalAlignment = "Left",
+                Parent = content,
+            })
+
+            for _, ctrl in ipairs(self.Controls) do
+                if ctrl.Type == "Toggle" then
+                    ag({
+                        Title = ctrl.Config.Title or "Toggle",
+                        Desc = ctrl.Config.Desc,
+                        Value = ctrl.Config.Value or false,
+                        Callback = ctrl.Config.Callback,
+                        Window = self.Window,
+                        Parent = content,
+                    })
+                elseif ctrl.Type == "Slider" then
+                    ah({
+                        Title = ctrl.Config.Title or "Slider",
+                        Desc = ctrl.Config.Desc,
+                        Value = { Min = ctrl.Config.Min or 0, Max = ctrl.Config.Max or 100, Default = ctrl.Config.Default or 50 },
+                        Callback = ctrl.Config.Callback,
+                        Window = self.Window,
+                        Parent = content,
+                    })
+                elseif ctrl.Type == "Input" then
+                    ai({
+                        Title = ctrl.Config.Title or "Input",
+                        Placeholder = ctrl.Config.Placeholder or "Enter...",
+                        Callback = ctrl.Config.Callback,
+                        Window = self.Window,
+                        Parent = content,
+                    })
+                elseif ctrl.Type == "Dropdown" then
+                    aj({
+                        Title = ctrl.Config.Title or "Dropdown",
+                        Values = ctrl.Config.Values or {},
+                        Value = ctrl.Config.Value,
+                        Callback = ctrl.Config.Callback,
+                        Window = self.Window,
+                        Parent = content,
+                    })
+                elseif ctrl.Type == "Button" then
+                    ae(
+                        ctrl.Config.Title or "Button",
+                        ctrl.Config.Icon,
+                        ctrl.Config.Callback,
+                        ctrl.Config.Variant or "Secondary",
+                        content
+                    )
+                end
+            end
+            return content
+        end
+
+        function self:Open()
+            if self.Opened then return end
+            self.Opened = true
+
+            if self.Config.Type == 1 then
+                self:Close()
+                self.WindUI:Notify({ Title = "Popup type not fully implemented", Duration = 2 })
+            elseif self.Config.Type == 2 then
+                local slidePanel = ac("Frame", {
+                    Size = UDim2.new(0, 300, 1, 0),
+                    Position = UDim2.new(1, 0, 0, 0),
+                    BackgroundTransparency = 0.95,
+                    ThemeTag = { BackgroundColor3 = "PanelBackground" },
+                    Parent = self.Window.UIElements.Main.Main,
+                    ZIndex = 999,
+                    Visible = true,
+                })
+                ac("UICorner", { CornerRadius = UDim.new(0, 0) })
+                local closeBtn = ae("×", "x", function()
+                    self:Close()
+                end, "Secondary", slidePanel)
+                closeBtn.Size = UDim2.new(0, 30, 0, 30)
+                closeBtn.Position = UDim2.new(1, -10, 0, 10)
+                closeBtn.AnchorPoint = Vector2.new(1, 0)
+
+                local title = ac("TextLabel", {
+                    Text = self.Config.Title or "Config",
+                    TextSize = 20,
+                    FontFace = Font.new(ab.Font, Enum.FontWeight.SemiBold),
+                    ThemeTag = { TextColor3 = "Text" },
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 20, 0, 20),
+                    Size = UDim2.new(1, -40, 0, 30),
+                    TextXAlignment = "Left",
+                    Parent = slidePanel,
+                })
+
+                local scroll = ac("ScrollingFrame", {
+                    Size = UDim2.new(1, -20, 1, -80),
+                    Position = UDim2.new(0, 10, 0, 60),
+                    BackgroundTransparency = 1,
+                    AutomaticCanvasSize = "Y",
+                    CanvasSize = UDim2.new(0, 0, 0, 0),
+                    ScrollingDirection = "Y",
+                    ScrollBarThickness = 0,
+                    Parent = slidePanel,
+                })
+                ac("UIListLayout", {
+                    FillDirection = "Vertical",
+                    Padding = UDim.new(0, 10),
+                    Parent = scroll,
+                })
+
+                self:BuildPanel(scroll)
+
+                slidePanel.Position = UDim2.new(1, 0, 0, 0)
+                ad(slidePanel, 0.3, { Position = UDim2.new(1, -300, 0, 0) }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+                self.Panel = slidePanel
+            end
+        end
+
+        function self:Close()
+            if self.Panel then
+                ad(self.Panel, 0.3, { Position = UDim2.new(1, 0, 0, 0) }, Enum.EasingStyle.Quint, Enum.EasingDirection.In):Play()
+                task.wait(0.3)
+                self.Panel:Destroy()
+                self.Panel = nil
+            end
+            self.Opened = false
+        end
+
+        function self:ToggleValue()
+            if self.Element.Set then
+                self.Element:Set(not self.Element.Value)
+            end
+        end
+        function self:SetValue(val)
+            if self.Element.Set then
+                self.Element:Set(val)
+            end
+        end
+        function self:GetValue()
+            return self.Element.Value
+        end
+
+        return self
+    end
+    return aa
+end
+
 local aa = {
     Window = nil,
     Theme = nil,
