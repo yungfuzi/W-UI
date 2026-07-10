@@ -14451,6 +14451,7 @@ au, av = ar:New(at)
     end
 end
 
+
 function a.af()
     local aa = {}
     local ab = a.load("d")
@@ -14466,7 +14467,7 @@ function a.af()
     function aa.New(element, config, window, windUI)
         local self = {
             Element = element,
-            Config = config,          
+            Config = config,          -- { Title, Type }  Type: 1=popup, 2=slide
             Window = window,
             WindUI = windUI,
             Controls = {},
@@ -14475,14 +14476,19 @@ function a.af()
             GearIcon = nil,
         }
 
-        local gearIcon = ab.Image("settings", "settings", 0, window.Folder, "Config", true)
-        gearIcon.Size = UDim2.new(0, 20, 0, 20)
-        gearIcon.ImageLabel.ImageTransparency = 0.4
-        gearIcon.ImageLabel.ImageColor3 = Color3.new(1,1,1) -- use theme
-        gearIcon.Parent = element.ToggleFrame.UIElements.Main
-        gearIcon.AnchorPoint = Vector2.new(1, 0.5)
-        gearIcon.Position = UDim2.new(1, -8, 0.5, 0)
-        gearIcon.LayoutOrder = 999
+        local gearIcon = ab.New("ImageButton", {
+            Size = UDim2.new(0, 20, 0, 20),
+            BackgroundTransparency = 1,
+            Image = ab.Icon("settings")[1],
+            ImageRectSize = ab.Icon("settings")[2].ImageRectSize,
+            ImageRectOffset = ab.Icon("settings")[2].ImageRectPosition,
+            ImageTransparency = 0.4,
+            ThemeTag = { ImageColor3 = "Icon" },
+            Parent = element.ToggleFrame.UIElements.Main,
+            AnchorPoint = Vector2.new(1, 0.5),
+            Position = UDim2.new(1, -8, 0.5, 0),
+            LayoutOrder = 999,
+        })
         self.GearIcon = gearIcon
 
         ab.AddSignal(gearIcon.MouseButton1Click, function()
@@ -14532,19 +14538,24 @@ function a.af()
 
             for _, ctrl in ipairs(self.Controls) do
                 if ctrl.Type == "Toggle" then
-                    ag({
+                    local toggleTable = {
                         Title = ctrl.Config.Title or "Toggle",
                         Desc = ctrl.Config.Desc,
                         Value = ctrl.Config.Value or false,
                         Callback = ctrl.Config.Callback,
                         Window = self.Window,
                         Parent = content,
-                    })
+                    }
+                    ag(toggleTable)  
                 elseif ctrl.Type == "Slider" then
                     ah({
                         Title = ctrl.Config.Title or "Slider",
                         Desc = ctrl.Config.Desc,
-                        Value = { Min = ctrl.Config.Min or 0, Max = ctrl.Config.Max or 100, Default = ctrl.Config.Default or 50 },
+                        Value = {
+                            Min = ctrl.Config.Min or 0,
+                            Max = ctrl.Config.Max or 100,
+                            Default = ctrl.Config.Default or 50,
+                        },
                         Callback = ctrl.Config.Callback,
                         Window = self.Window,
                         Parent = content,
@@ -14556,6 +14567,7 @@ function a.af()
                         Callback = ctrl.Config.Callback,
                         Window = self.Window,
                         Parent = content,
+                        Type = "Input",  -- or Textarea
                     })
                 elseif ctrl.Type == "Dropdown" then
                     aj({
@@ -14584,9 +14596,16 @@ function a.af()
             self.Opened = true
 
             if self.Config.Type == 1 then
-                self:Close()
-                self.WindUI:Notify({ Title = "Popup type not fully implemented", Duration = 2 })
+                -- Type 1: Popup (simplified – you can extend with WindUI:Popup)
+                self.WindUI:Notify({
+                    Title = "Popup type not fully implemented",
+                    Content = "Please use Type=2 for now.",
+                    Duration = 3,
+                })
+                self.Opened = false
+                return
             elseif self.Config.Type == 2 then
+                -- Type 2: Slide from right edge
                 local slidePanel = ac("Frame", {
                     Size = UDim2.new(0, 300, 1, 0),
                     Position = UDim2.new(1, 0, 0, 0),
@@ -14596,7 +14615,9 @@ function a.af()
                     ZIndex = 999,
                     Visible = true,
                 })
-                ac("UICorner", { CornerRadius = UDim.new(0, 0) })
+                ac("UICorner", { CornerRadius = UDim.new(0, 0) }) -- no corner
+
+                -- Close button
                 local closeBtn = ae("×", "x", function()
                     self:Close()
                 end, "Secondary", slidePanel)
@@ -14604,6 +14625,7 @@ function a.af()
                 closeBtn.Position = UDim2.new(1, -10, 0, 10)
                 closeBtn.AnchorPoint = Vector2.new(1, 0)
 
+                -- Title
                 local title = ac("TextLabel", {
                     Text = self.Config.Title or "Config",
                     TextSize = 20,
@@ -14616,6 +14638,7 @@ function a.af()
                     Parent = slidePanel,
                 })
 
+                -- Scrollable content
                 local scroll = ac("ScrollingFrame", {
                     Size = UDim2.new(1, -20, 1, -80),
                     Position = UDim2.new(0, 10, 0, 60),
@@ -14634,9 +14657,12 @@ function a.af()
 
                 self:BuildPanel(scroll)
 
+                -- Animate slide in
                 slidePanel.Position = UDim2.new(1, 0, 0, 0)
                 ad(slidePanel, 0.3, { Position = UDim2.new(1, -300, 0, 0) }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
                 self.Panel = slidePanel
+            else
+                self.Opened = false
             end
         end
 
@@ -14650,6 +14676,7 @@ function a.af()
             self.Opened = false
         end
 
+        -- Direct control of the main element
         function self:ToggleValue()
             if self.Element.Set then
                 self.Element:Set(not self.Element.Value)
