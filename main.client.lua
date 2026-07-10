@@ -458,8 +458,27 @@ do
 		Border = true,
 	})
 
-	ToggleTab:Toggle({
+	local Toggle2 = ToggleTab:Toggle({
 		Title = "Toggle",
+	})
+
+
+    local linked = Toggle2:Link({
+      Title = "Advanced",
+      Type = 2   -- slide panel
+    })
+
+    linked:Toggle({
+      Title = "Sub-toggle",
+      Value = true,
+      Callback = function(v) print(v) end
+    })
+
+    linked:Slider({
+        Title = "Volume",
+        Min = 0,
+		Max = 100,
+		Default = 50
 	})
 
 	ToggleTab:Space()
