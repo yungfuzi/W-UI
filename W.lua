@@ -7074,6 +7074,11 @@ aA = ac(ah.UICorner, "Squircle-Outline", {
                 return ai.ToggleFrame:Unlock()
             end
 
+            ai.Link = function(config)
+               local linked = a.load("af").New(ai, config, ah.Window, ah.WindUI)
+               return linked
+            end
+
             if ai.Locked then
                 ai:Lock()
             end
